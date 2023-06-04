@@ -1,20 +1,39 @@
-const xhr = new XMLHttpRequest;
-const progress = document.querySelector(`#progress`);
-const form = document.querySelector(`#form`);
-form.addEventListener(`submit`, (e) => {
-const formData = new FormData(form);
-xhr.open(`POST`, ``);
-xhr.addEventListener(`readystatechange`, () => {
-    if(xhr.readyState === 1){
-        progress.value = 0.25;
-    }else if(xhr.readyState === 2){
-        progress.value = 0.5;
-    }else if(xhr.readyState === 3){
-        progress.value = 0.75;
-    }else {
-        progress.value = 1;
+const progress = document.getElementById("progress")
+const form = document.getElementById('form')
+
+form.onsubmit = function(e) {
+    e.preventDefault();
+    let file = document.getElementById('file').files[0];
+    
+    if (file) {
+        upload(file);
     }
-});
-xhr.send(formData);
-e.preventDefault();
-});
+}
+
+function upload(file) {
+    let ajax = new XMLHttpRequest();
+    ajax.upload.onprogress = function(event) {
+        let div = document.createElement('div')
+        form.appendChild(div)
+        div.outerHTML = `
+        <div class="status_text size_text">
+            ${event.loaded} из ${event.total} МБ
+        </div>
+        `
+        progress.value = event.loaded / event.total;
+    }
+
+    ajax.onload = ajax.onerror = function() {
+        if (this.status == 201) {
+            alert('Файл успешно загружен')
+        } else {
+            alert('Не удалось загрузить файл')
+        }
+    }
+
+    var formData = new FormData();
+    formData.append("file", file);
+    
+    ajax.open("POST", "https://students.netoservices.ru/nestjs-backend/upload", true);
+    ajax.send(formData);
+}
